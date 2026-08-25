@@ -1,0 +1,6 @@
+'use client';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuthStore } from '@/state/authStore';
+const TABS=[{href:'/generate',label:'Send'},{href:'/history',label:'History'},{href:'/playbook',label:'Playbook'},{href:'/profile',label:'Profile'}];
+export default function Shell({children}){const pathname=usePathname();const router=useRouter();const logout=useAuthStore(s=>s.logout);return <div className="min-h-screen flex flex-col"><header className="px-5 pt-6 pb-4 flex items-center justify-between"><Link href="/generate"><span className="stamp">Outreach</span></Link><button className="text-xs text-ink/50 hover:text-ink" onClick={()=>{logout();router.replace('/login')}}>Log out</button></header><main className="flex-1 px-5 pb-24 max-w-lg w-full mx-auto">{children}</main><nav className="fixed bottom-0 left-0 right-0 bg-paperRaised border-t border-ink/10"><div className="max-w-lg mx-auto flex justify-around">{TABS.map(tab=>{const active=pathname===tab.href||pathname.startsWith(`${tab.href}/`);return <Link key={tab.href} href={tab.href} className={`flex-1 text-center py-3 text-sm font-medium ${active?'text-ink border-t-2 border-flare -mt-px':'text-ink/50'}`}>{tab.label}</Link>})}</div></nav></div>}

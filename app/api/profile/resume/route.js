@@ -1,4 +1,4 @@
-import { requireUser } from '@/lib/server/auth';
+import { requireVerifiedUser } from '@/lib/server/auth';
 import { getCollections } from '@/lib/server/db/mongodb';
 import { parseResume } from '@/lib/server/services/resumeParser';
 import { uploadResume } from '@/lib/server/services/s3';
@@ -10,7 +10,7 @@ export async function OPTIONS() { return options(); }
 
 export async function POST(request) {
   try {
-    const uid = requireUser(request);
+    const uid = await requireVerifiedUser(request);
     const form = await request.formData();
     const file = form.get('resume');
     if (!file || typeof file.arrayBuffer !== 'function') return json({ error: 'no_file' }, { status: 400 });

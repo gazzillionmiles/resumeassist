@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { requireUser } from '@/lib/server/auth';
+import { requireVerifiedUser } from '@/lib/server/auth';
 import { getCollections } from '@/lib/server/db/mongodb';
 import { fetchCompanySources } from '@/lib/server/services/tinyfish';
 import { callBedrockJSON } from '@/lib/server/services/bedrock';
@@ -29,7 +29,7 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   try {
-    const uid = requireUser(request);
+    const uid = await requireVerifiedUser(request);
     const { company, roleTitle, jdStructured, sources } = schema.parse(await request.json());
     console.log(`[api/research/analyze] Analyzing ${sources.length} sources for company: "${company}"`);
 
@@ -114,7 +114,39 @@ export async function POST(request) {
     console.log(`  - Recent developments: ${research.recent_developments?.length || 0} items`);
     console.log(`  - Sources used: ${research.sources_used?.length || 0} sources`);
 
-    return json({ research });
+    // Normalize research developments structure to ensure consistent consumption
+    const normalizedDevelopments = Array.isArray(research.recent_developments)
+      ? research.recent_developments.map((dev) => {
+          if (typeof dev === 'string') {
+            return {
+              headline: dev,
+              date: '',
+              summary: dev,
+            };
+          }
+          return {
+            headline: dev.headline || dev.title || '',
+            date: dev.date || '',
+            summary: dev.summary || dev.description || '',
+          };
+        })
+      : [];
+
+    const fullResearch = {
+      company_name: research.company_name || company,
+      role_title: roleTitle || jdStructured?.role_title || null,
+      recent_developments: normalizedDevelopments,
+      relevance: research.relevance || '',
+      candidate_connection: research.candidate_connection || '',
+      conversation_hook: research.conversation_hook || '',
+      key_insights: Array.isArray(research.key_insights) ? research.key_insights : [],
+      sources_used:
+        Array.isArray(research.sources_used) && research.sources_used.length > 0
+          ? research.sources_used
+          : fetchedArticles.map((a) => ({ title: a.title, url: a.url })),
+    };
+
+    return json({ research: fullResearch });
   } catch (e) {
     console.error('[api/research/analyze] Error:', e.message);
     return handleError(e);

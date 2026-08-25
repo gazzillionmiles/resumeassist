@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { requireUser } from '@/lib/server/auth';
+import { requireVerifiedUser } from '@/lib/server/auth';
 import {
   fetchJobPosting,
   FetchBlockedError,
@@ -28,7 +28,7 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   try {
-    requireUser(request);
+    await requireVerifiedUser(request);
     const { jobUrl, jdRawText } = schema.parse(await request.json());
     let rawText = jdRawText;
     let sourceDomain = null;

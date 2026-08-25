@@ -22,7 +22,6 @@ export default function HistoryOutput() {
             linkedinMessage: g.linkedin_output,
             companyResearch: g.company_research || null,
             createdAt: g.created_at,
-            duplicateWarning: null,
           })
         )
         .catch((e) => setError(e.message || 'Failed to load generation'));

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getCollections } from '@/lib/server/db/mongodb';
-import { requireUser } from '@/lib/server/auth';
+import { requireVerifiedUser } from '@/lib/server/auth';
 import { json, options, noContent, handleError } from '@/lib/server/http';
 
 const schema = z.object({
@@ -22,7 +22,7 @@ export async function OPTIONS() { return options(); }
 
 export async function GET(request) {
   try {
-    const uid = requireUser(request);
+    const uid = await requireVerifiedUser(request);
     const { profiles } = await getCollections();
     const profile = await profiles.findOne({ user_id: uid });
     if (!profile) return json(null);
@@ -45,7 +45,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const uid = requireUser(request);
+    const uid = await requireVerifiedUser(request);
     const f = schema.parse(await request.json());
     const { profiles } = await getCollections();
 

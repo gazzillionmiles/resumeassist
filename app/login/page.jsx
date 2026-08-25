@@ -11,7 +11,7 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const setToken = useAuthStore((s) => s.setToken);
+  const { setAuth } = useAuthStore();
   const router = useRouter();
   const params = useSearchParams();
 
@@ -20,8 +20,10 @@ function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      const { token } = await api.login(email, password);
-      setToken(token);
+      const res = await api.login(email, password);
+      if (res.token) {
+        setAuth(res.token, res.user || { email, emailVerified: false });
+      }
       router.replace(params.get('next') || '/generate');
     } catch (err) {
       setError(err.message || 'Login failed');

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { requireUser } from '@/lib/server/auth';
+import { requireVerifiedUser } from '@/lib/server/auth';
 import { searchCompanyNews } from '@/lib/server/services/tavily';
 import { json, options, handleError } from '@/lib/server/http';
 
@@ -15,7 +15,7 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   try {
-    requireUser(request);
+    await requireVerifiedUser(request);
     const { company, roleTitle } = schema.parse(await request.json());
     console.log(`[api/research/search] Request received for company: "${company}", roleTitle: "${roleTitle || ''}"`);
 

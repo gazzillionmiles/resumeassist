@@ -73,78 +73,184 @@ export default function OutputClient({ result }) {
         </div>
       )}
 
-      {result.duplicateWarning && (
-        <div className="border border-rust/40 bg-rust/5 rounded-md p-3 text-sm mb-4">
-          <p className="text-rust font-medium">You already messaged this company</p>
-          <p className="text-ink/70">
-            Last outreach on{' '}
-            {new Date(result.duplicateWarning.previousDate).toLocaleDateString()}.
-          </p>
-        </div>
-      )}
-
       {result.companyResearch && (
-        <section className="card mb-4 border border-moss/30 bg-moss/5">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs uppercase tracking-wide text-moss font-semibold flex items-center gap-1.5">
-              <span>✦</span> Company Intelligence & Research
-            </p>
+        <section className="card mb-4 border border-moss/30 bg-moss/5 flex flex-col gap-4">
+          <div className="flex items-center justify-between border-b border-moss/20 pb-2">
+            <div>
+              <span className="text-[11px] font-mono text-moss uppercase tracking-wider font-semibold">
+                ✦ Company Research & Intel
+              </span>
+              <h2 className="text-base font-bold text-ink">
+                {result.companyResearch.company_name || result.company_name || 'Target Company'}
+              </h2>
+            </div>
+            <span className="stamp">Grounded Intel</span>
           </div>
 
-          {result.companyResearch.conversation_hook && (
-            <div className="mb-3 p-2.5 bg-paper rounded border border-ink/10">
-              <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-0.5">
-                Conversation Hook
-              </span>
-              <p className="text-xs text-ink font-medium leading-relaxed">
-                {result.companyResearch.conversation_hook}
-              </p>
+          {/* PART 1: Here is what Outreach found about this company */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-xs uppercase tracking-wide font-semibold text-ink/70 flex items-center gap-1.5">
+              <span>🔍</span> Here is what Outreach found about this company:
+            </h3>
+
+            {/* Recent Developments */}
+            {Array.isArray(result.companyResearch.recent_developments) &&
+              result.companyResearch.recent_developments.length > 0 && (
+                <div>
+                  <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-1">
+                    Recent Developments
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    {result.companyResearch.recent_developments.map((dev, i) => {
+                      if (typeof dev === 'string') {
+                        return (
+                          <div
+                            key={i}
+                            className="p-2.5 bg-paper rounded border border-ink/10 text-xs text-ink/80 leading-relaxed"
+                          >
+                            {dev}
+                          </div>
+                        );
+                      }
+                      return (
+                        <div
+                          key={i}
+                          className="p-2.5 bg-paper rounded border border-ink/10 flex flex-col gap-0.5"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-xs text-ink">
+                              {dev.headline || 'Development'}
+                            </span>
+                            {dev.date && (
+                              <span className="text-[10px] font-mono text-ink/50 bg-ink/5 px-1.5 py-0.5 rounded border border-ink/10">
+                                {dev.date}
+                              </span>
+                            )}
+                          </div>
+                          {dev.summary && (
+                            <p className="text-xs text-ink/80 leading-relaxed mt-0.5">
+                              {dev.summary}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+            {/* Relevance to role */}
+            {result.companyResearch.relevance && (
+              <div className="p-2.5 bg-paper rounded border border-ink/10">
+                <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-0.5">
+                  Why it is relevant to this role
+                </span>
+                <p className="text-xs text-ink/80 leading-relaxed">
+                  {result.companyResearch.relevance}
+                </p>
+              </div>
+            )}
+
+            {/* Sources used */}
+            {Array.isArray(result.companyResearch.sources_used) &&
+              result.companyResearch.sources_used.length > 0 && (
+                <div className="pt-2 border-t border-ink/10 flex flex-wrap items-center gap-2 text-[11px] text-ink/50">
+                  <span className="font-semibold text-ink/60">Sources used:</span>
+                  {result.companyResearch.sources_used.map((source, i) => (
+                    <a
+                      key={i}
+                      href={source.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-moss hover:underline truncate max-w-[220px]"
+                      title={source.title || source.url}
+                    >
+                      {source.title || (source.url ? new URL(source.url).hostname : 'Source')}
+                    </a>
+                  ))}
+                </div>
+              )}
+          </div>
+
+          {/* PART 2: Here is how this research was used in your outreach */}
+          {(result.companyResearch.conversation_hook ||
+            result.companyResearch.candidate_connection) && (
+            <div className="flex flex-col gap-2 pt-3 border-t border-moss/20">
+              <h3 className="text-xs uppercase tracking-wide font-semibold text-moss flex items-center gap-1.5">
+                <span>🎯</span> Here is how this research was used in your outreach:
+              </h3>
+
+              {result.companyResearch.conversation_hook && (
+                <div className="p-2.5 bg-paper rounded border border-moss/30 shadow-xs">
+                  <span className="text-[11px] font-semibold text-moss uppercase block mb-0.5">
+                    Conversation / Personalization Hook
+                  </span>
+                  <p className="text-xs text-ink font-medium leading-relaxed">
+                    {result.companyResearch.conversation_hook}
+                  </p>
+                </div>
+              )}
+
+              {result.companyResearch.candidate_connection && (
+                <div className="p-2.5 bg-paper rounded border border-ink/10">
+                  <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-0.5">
+                    Candidate Connection
+                  </span>
+                  <p className="text-xs text-ink/80 leading-relaxed">
+                    {result.companyResearch.candidate_connection}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
-          {result.companyResearch.candidate_connection && (
-            <div className="mb-3">
-              <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-0.5">
-                Candidate Connection
-              </span>
-              <p className="text-xs text-ink/80 leading-relaxed">
-                {result.companyResearch.candidate_connection}
-              </p>
-            </div>
-          )}
-
-          {result.companyResearch.recent_developments?.length > 0 && (
-            <div className="mb-3">
-              <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-1">
-                Recent Developments
-              </span>
-              <ul className="text-xs text-ink/80 list-disc list-inside space-y-1">
-                {result.companyResearch.recent_developments.map((dev, i) => (
-                  <li key={i} className="leading-relaxed">
-                    {dev}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {result.companyResearch.sources_used?.length > 0 && (
-            <div className="pt-2 border-t border-ink/10 flex flex-wrap items-center gap-2 text-[11px] text-ink/50">
-              <span className="font-medium">Sources:</span>
-              {result.companyResearch.sources_used.map((source, i) => (
-                <a
-                  key={i}
-                  href={source.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-moss hover:underline truncate max-w-[200px]"
-                  title={source.title || source.url}
-                >
-                  {source.title || new URL(source.url).hostname}
-                </a>
-              ))}
-            </div>
-          )}
+          {/* PART 3: Interview Talking Points */}
+          {Array.isArray(result.companyResearch.interview_points) &&
+            result.companyResearch.interview_points.length > 0 && (
+              <div className="flex flex-col gap-2 pt-3 border-t border-moss/20">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs uppercase tracking-wide font-semibold text-moss flex items-center gap-1.5">
+                    <span>💡</span> Interview Talking Points & Strategic Questions:
+                  </h3>
+                  <span className="text-[10px] font-mono text-ink/40">Ready for calls</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {result.companyResearch.interview_points.map((item, i) => {
+                    if (typeof item === 'string') {
+                      return (
+                        <div
+                          key={i}
+                          className="p-2.5 bg-paper rounded border border-ink/10 text-xs text-ink/80 leading-relaxed"
+                        >
+                          <span className="font-semibold text-ink block mb-0.5">Point {i + 1}</span>
+                          {item}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div
+                        key={i}
+                        className="p-2.5 bg-paper rounded border border-ink/10 flex flex-col gap-1"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-moss/10 text-moss font-mono text-[11px] font-bold flex items-center justify-center shrink-0">
+                            {i + 1}
+                          </span>
+                          <span className="font-semibold text-xs text-ink">
+                            {item.point || 'Interview Angle'}
+                          </span>
+                        </div>
+                        {item.context && (
+                          <p className="text-xs text-ink/80 leading-relaxed pl-7">
+                            {item.context}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
         </section>
       )}
 

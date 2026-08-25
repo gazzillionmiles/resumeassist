@@ -18,10 +18,20 @@ export async function POST(request) {
 
     const { email, password } = schema.parse(await request.json());
     const { users } = await getCollections();
-    const user = await users.findOne({ email: email.toLowerCase().trim() });
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await users.findOne({ email: normalizedEmail });
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      return json({ error: 'invalid_credentials' }, { status: 401 });
+      return json({ error: 'invalid_credentials', message: 'Invalid email or password.' }, { status: 401 });
     }
-    return json({ token: signToken(user._id.toString()) });
+
+    const isVerified = Boolean(user.emailVerified);
+    return json({
+      token: signToken(user._id.toString()),
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        emailVerified: isVerified,
+      },
+    });
   } catch (error) { return handleError(error); }
 }

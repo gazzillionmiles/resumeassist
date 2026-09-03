@@ -1,19 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/state/authStore';
 import { identifyUser, analytics } from '@/lib/client/analytics';
+import { validatePassword, PASSWORD_CRITERIA } from '@/lib/password';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Lock, Mail, ArrowRight, CheckCircle, RefreshCw } from 'lucide-react';
+import { Lock, Mail, ArrowRight, CheckCircle, RefreshCw, Eye, EyeOff, Check, X, ShieldAlert } from 'lucide-react';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [signedUpEmail, setSignedUpEmail] = useState(null);
@@ -23,9 +26,17 @@ export default function Signup() {
   const { setAuth, setUser } = useAuthStore();
   const router = useRouter();
 
+  const passwordAnalysis = useMemo(() => validatePassword(password), [password]);
+
   async function onSubmit(e) {
     e.preventDefault();
     setError(null);
+
+    if (!passwordAnalysis.valid) {
+      setError('Please satisfy all password complexity requirements before continuing.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -189,6 +200,15 @@ export default function Signup() {
     );
   }
 
+  const getStrengthColor = (strength) => {
+    switch (strength) {
+      case 'strong': return 'bg-[#2CB7A5] text-[#2CB7A5]';
+      case 'good': return 'bg-emerald-400 text-emerald-400';
+      case 'fair': return 'bg-amber-400 text-amber-400';
+      default: return 'bg-red-400 text-red-400';
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#121316] text-[#F4F4F5]">
       <Header />
@@ -249,15 +269,27 @@ export default function Signup() {
             </div>
 
             <div className="space-y-1.5">
-              <label
-                htmlFor="signup-password"
-                className="text-xs font-semibold text-zinc-300 block"
-              >
-                Password{' '}
-                <span className="text-zinc-500 font-normal">
-                  (min 8 characters)
-                </span>
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="signup-password"
+                  className="text-xs font-semibold text-zinc-300 block"
+                >
+                  Password
+                </label>
+                {password && (
+                  <span className={`text-[11px] font-bold uppercase tracking-wider capitalize ${
+                    passwordAnalysis.strength === 'strong'
+                      ? 'text-[#2CB7A5]'
+                      : passwordAnalysis.strength === 'good'
+                      ? 'text-emerald-400'
+                      : passwordAnalysis.strength === 'fair'
+                      ? 'text-amber-400'
+                      : 'text-red-400'
+                  }`}>
+                    {passwordAnalysis.strength}
+                  </span>
+                )}
+              </div>
 
               <div className="relative w-full">
                 <Lock
@@ -267,19 +299,80 @@ export default function Signup() {
 
                 <input
                   id="signup-password"
-                  className="input-field !pl-11 w-full"
-                  type="password"
+                  className="input-field !pl-11 !pr-11 w-full"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (!passwordTouched) setPasswordTouched(true);
+                  }}
+                  onBlur={() => setPasswordTouched(true)}
                   autoComplete="new-password"
-                  minLength={8}
                   required
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 cursor-pointer p-1"
+                  tabIndex={-1}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
+
+              {/* Password Strength Meter Bar */}
+              {password && (
+                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-1.5">
+                  <div
+                    className={`h-full transition-all duration-300 ${
+                      passwordAnalysis.strength === 'strong'
+                        ? 'bg-[#2CB7A5] w-full'
+                        : passwordAnalysis.strength === 'good'
+                        ? 'bg-emerald-400 w-3/4'
+                        : passwordAnalysis.strength === 'fair'
+                        ? 'bg-amber-400 w-1/2'
+                        : 'bg-red-400 w-1/4'
+                    }`}
+                  />
+                </div>
+              )}
+
+              {/* Live Password Requirements Checklist */}
+              {(passwordTouched || password) && (
+                <div className="p-3 bg-black/40 border border-white/5 rounded-xl space-y-1.5 mt-2">
+                  <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold block">
+                    Password Requirements:
+                  </span>
+                  <div className="grid grid-cols-1 gap-1 text-[11px]">
+                    {PASSWORD_CRITERIA.map((criterion) => {
+                      const isMet = passwordAnalysis.checks[criterion.id];
+                      return (
+                        <div
+                          key={criterion.id}
+                          className={`flex items-center gap-1.5 transition-colors ${
+                            isMet ? 'text-[#2CB7A5] font-medium' : 'text-zinc-500'
+                          }`}
+                        >
+                          {isMet ? (
+                            <Check className="w-3.5 h-3.5 shrink-0 stroke-[3]" />
+                          ) : (
+                            <div className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+                            </div>
+                          )}
+                          <span>{criterion.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <p className="text-[11px] text-zinc-400 leading-relaxed">
+            <p className="text-[11px] text-zinc-400 leading-relaxed pt-1">
               By signing up, you agree to our{' '}
               <Link
                 href="/terms"
@@ -304,7 +397,7 @@ export default function Signup() {
             <button
               type="submit"
               className="w-full py-3 px-4 rounded-xl bg-[#2CB7A5] hover:bg-[#24998A] text-[#121316] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
+              disabled={loading || (password.length > 0 && !passwordAnalysis.valid)}
             >
               {loading ? (
                 <span>Creating account…</span>

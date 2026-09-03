@@ -4,11 +4,15 @@ import { getCollections } from '../../../../lib/server/db/mongodb.js';
 import { signToken, generateVerificationToken } from '../../../../lib/server/auth.js';
 import { sendVerificationEmail } from '../../../../lib/server/services/email.js';
 import { FREE_CREDITS } from '../../../../lib/server/services/credits.js';
+import { passwordSchema } from '../../../../lib/password.js';
 import { json, options, handleError } from '../../../../lib/server/http.js';
 import { rateLimit } from '../../../../lib/server/rateLimit.js';
 import { ObjectId } from 'mongodb';
 
-const schema = z.object({ email: z.string().email(), password: z.string().min(8) });
+const schema = z.object({
+  email: z.string().email('Please provide a valid email address'),
+  password: passwordSchema,
+});
 export const runtime = 'nodejs';
 export async function OPTIONS() { return options(); }
 

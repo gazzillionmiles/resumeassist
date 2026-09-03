@@ -1,9 +1,10 @@
-import { getCollections } from '@/lib/server/db/mongodb';
-import { requireUser } from '@/lib/server/auth';
-import { toObjectId } from '@/lib/server/db/ids';
-import { TERMS_CONSENT_VERSION } from '@/lib/server/consent';
-import { getUserCredits } from '@/lib/server/services/credits';
-import { json, options, handleError } from '@/lib/server/http';
+import { getCollections } from '../../../../lib/server/db/mongodb.js';
+import { requireUser } from '../../../../lib/server/auth.js';
+import { toObjectId } from '../../../../lib/server/db/ids.js';
+import { TERMS_CONSENT_VERSION } from '../../../../lib/server/consent.js';
+import { getUserCredits } from '../../../../lib/server/services/credits.js';
+import { isProfileComplete } from '../../../../lib/server/profile.js';
+import { json, options, handleError } from '../../../../lib/server/http.js';
 
 export const runtime = 'nodejs';
 export async function OPTIONS() { return options(); }
@@ -11,7 +12,7 @@ export async function OPTIONS() { return options(); }
 export async function GET(request) {
   try {
     const userId = requireUser(request);
-    const { users } = await getCollections();
+    const { users, profiles } = await getCollections();
     const user = await users.findOne({ _id: toObjectId(userId) });
     if (!user) {
       const error = new Error('user_not_found');
@@ -25,7 +26,12 @@ export async function GET(request) {
       throw error;
     }
 
-    const credits = await getUserCredits(userId);
+    const [credits, profile] = await Promise.all([
+      getUserCredits(userId),
+      profiles.findOne({ user_id: userId }),
+    ]);
+
+    const profileComplete = isProfileComplete(profile);
 
     return json({
       user: {
@@ -38,6 +44,7 @@ export async function GET(request) {
         has_terms_consent: Boolean(user.has_terms_consent && user.terms_consent_version === TERMS_CONSENT_VERSION),
         terms_consent_version: user.terms_consent_version || null,
         is_admin: Boolean(user.is_admin),
+        is_profile_complete: profileComplete,
         credits: {
           free: credits.freeCredits,
           purchased: credits.purchasedCredits,

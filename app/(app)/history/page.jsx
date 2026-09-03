@@ -292,8 +292,9 @@ export default function History() {
                   </span>
                 )}
                 {g.generation_type === 'company_outreach' && (
-                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-[#2CB7A5]/10 text-[#2CB7A5] border border-[#2CB7A5]/20">
-                    Company Outreach
+                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-[#2CB7A5]/10 text-[#2CB7A5] border border-[#2CB7A5]/20 flex items-center gap-1">
+                    <span>Company Outreach</span>
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">BETA</span>
                   </span>
                 )}
                 {g.fetch_status === 'manual_paste' && (

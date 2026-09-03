@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { getCollections } from '@/lib/server/db/mongodb';
-import { requireVerifiedUser } from '@/lib/server/auth';
-import { json, options, noContent, handleError } from '@/lib/server/http';
+import { getCollections } from '../../../lib/server/db/mongodb.js';
+import { requireVerifiedUser } from '../../../lib/server/auth.js';
+import { isProfileComplete, getMissingProfileFields } from '../../../lib/server/profile.js';
+import { json, options, noContent, handleError } from '../../../lib/server/http.js';
 
 const schema = z.object({
   current_ctc: z.string().optional(),
@@ -9,12 +10,10 @@ const schema = z.object({
   notice_period: z.string().optional(),
   current_title: z.string().optional(),
   location: z.string().optional(),
-  work_auth: z.string().optional(),
   currentCtc: z.string().optional(),
   expectedCtc: z.string().optional(),
   noticePeriod: z.string().optional(),
   currentTitle: z.string().optional(),
-  workAuth: z.string().optional(),
 });
 
 export const runtime = 'nodejs';
@@ -26,6 +25,10 @@ export async function GET(request) {
     const { profiles } = await getCollections();
     const profile = await profiles.findOne({ user_id: uid });
     if (!profile) return json(null);
+
+    const isComplete = isProfileComplete(profile);
+    const missingFields = getMissingProfileFields(profile);
+
     return json({
       id: profile._id.toString(),
       current_title: profile.current_title ?? profile.currentTitle ?? '',
@@ -33,10 +36,11 @@ export async function GET(request) {
       expected_ctc: profile.expected_ctc ?? profile.expectedCtc ?? '',
       notice_period: profile.notice_period ?? profile.noticePeriod ?? '',
       location: profile.location ?? '',
-      work_auth: profile.work_auth ?? profile.workAuth ?? '',
       resume_structured: profile.resume_structured ?? null,
       resume_parse_confidence: profile.resume_parse_confidence ?? null,
       resume_filename: profile.resume_filename ?? null,
+      is_complete: isComplete,
+      missing_fields: missingFields,
       created_at: profile.created_at,
       updated_at: profile.updated_at,
     });
@@ -55,14 +59,17 @@ export async function POST(request) {
       expected_ctc: f.expected_ctc ?? f.expectedCtc ?? '',
       notice_period: f.notice_period ?? f.noticePeriod ?? '',
       location: f.location ?? '',
-      work_auth: f.work_auth ?? f.workAuth ?? '',
       user_id: uid,
       updated_at: new Date(),
     };
 
     await profiles.updateOne(
       { user_id: uid },
-      { $set: doc, $setOnInsert: { created_at: new Date() } },
+      {
+        $set: doc,
+        $unset: { work_auth: '', workAuth: '', work_authorization: '', workAuthorization: '' },
+        $setOnInsert: { created_at: new Date() },
+      },
       { upsert: true }
     );
     return noContent();

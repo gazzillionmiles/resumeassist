@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { getCollections } from '@/lib/server/db/mongodb';
-import { signToken, generateVerificationToken } from '@/lib/server/auth';
-import { sendVerificationEmail } from '@/lib/server/services/email';
-import { FREE_CREDITS } from '@/lib/server/services/credits';
-import { json, options, handleError } from '@/lib/server/http';
-import { rateLimit } from '@/lib/server/rateLimit';
+import { getCollections } from '../../../../lib/server/db/mongodb.js';
+import { signToken, generateVerificationToken } from '../../../../lib/server/auth.js';
+import { sendVerificationEmail } from '../../../../lib/server/services/email.js';
+import { FREE_CREDITS } from '../../../../lib/server/services/credits.js';
+import { json, options, handleError } from '../../../../lib/server/http.js';
+import { rateLimit } from '../../../../lib/server/rateLimit.js';
 import { ObjectId } from 'mongodb';
 
 const schema = z.object({ email: z.string().email(), password: z.string().min(8) });
@@ -68,6 +68,7 @@ export async function POST(request) {
         id: userId.toString(),
         email: normalizedEmail,
         emailVerified: false,
+        is_profile_complete: false,
         credits: {
           free: FREE_CREDITS,
           purchased: 0,

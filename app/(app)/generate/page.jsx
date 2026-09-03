@@ -24,6 +24,7 @@ import {
   CreditCard,
   X,
   Zap,
+  AlertTriangle,
 } from 'lucide-react';
 
 const TONE_OPTIONS = [
@@ -248,8 +249,33 @@ export default function GeneratePage() {
         >
           <Building2 className="w-3.5 h-3.5" />
           <span>Company Outreach (No JD)</span>
+          <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider ${
+            activeTab === 'company'
+              ? 'bg-[#121316]/20 text-[#121316]'
+              : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+          }`}>
+            BETA
+          </span>
         </button>
       </div>
+
+      {/* Beta Accuracy Disclaimer for Company Outreach */}
+      {activeTab === 'company' && (
+        <div className="border border-amber-500/30 bg-amber-500/10 rounded-2xl p-4 text-xs text-amber-300 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400 mt-0.5" />
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-amber-200">Company Outreach Mode</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                BETA
+              </span>
+            </div>
+            <p className="text-zinc-300 leading-relaxed">
+              This feature is in active beta. Automated contact discovery and company news synthesis may occasionally produce incomplete or less accurate results. Please double-check recipient names, titles, and company context before sending.
+            </p>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="border border-red-500/30 bg-red-500/10 rounded-2xl p-4 text-xs text-red-400">

@@ -31,7 +31,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#121316]/80 backdrop-blur-xl">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <Link href="/generate" className="flex items-center gap-2.5 group">
+        <Link href={user && user.is_profile_complete === false ? '/onboarding' : '/generate'} className="flex items-center gap-2.5 group">
           <Image
             src="/Outreach.png"
             alt="Outreach Logo"

@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/state/authStore';
 import { analytics } from '@/lib/client/analytics';
 import DeleteAccountModal from '@/components/DeleteAccountModal';
-import { Upload, FileText, CheckCircle2, AlertTriangle, Trash2, Save } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, AlertTriangle, Trash2, Save, Sparkles } from 'lucide-react';
 
 export default function Profile() {
   const { data: profile, isLoading } = useQuery({
@@ -27,14 +28,14 @@ export default function Profile() {
 
 function ProfileForm({ profile }) {
   const qc = useQueryClient();
+  const { updateUser } = useAuthStore();
 
   const [fields, setFields] = useState({
     current_title: profile?.current_title || '',
+    location: profile?.location || '',
     current_ctc: profile?.current_ctc || '',
     expected_ctc: profile?.expected_ctc || '',
     notice_period: profile?.notice_period || '',
-    location: profile?.location || '',
-    work_auth: profile?.work_auth || '',
   });
 
   const [resumeConfidence, setResumeConfidence] = useState(
@@ -43,14 +44,29 @@ function ProfileForm({ profile }) {
   const [resumeStructured, setResumeStructured] = useState(
     profile?.resume_structured || null
   );
+  const [resumeFilename, setResumeFilename] = useState(
+    profile?.resume_filename || ''
+  );
   const [uploading, setUploading] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // Compute live completeness
+  const hasResume = Boolean(resumeStructured || profile?.resume_structured || profile?.resume_filename || resumeFilename);
+  const isComplete = Boolean(
+    hasResume &&
+    fields.current_title.trim() &&
+    fields.location.trim() &&
+    fields.current_ctc.trim() &&
+    fields.expected_ctc.trim() &&
+    fields.notice_period.trim()
+  );
 
   const save = useMutation({
     mutationFn: () => api.saveProfile(fields),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['profile'] });
+      updateUser({ is_profile_complete: isComplete });
       setSaveMessage('Profile saved successfully!');
       setTimeout(() => setSaveMessage(null), 2500);
     },
@@ -64,6 +80,7 @@ function ProfileForm({ profile }) {
       const r = await api.uploadResume(file);
       setResumeStructured(r.structured);
       setResumeConfidence(r.confidence);
+      setResumeFilename(file.name);
       analytics.resumeUploaded({ confidence: r.confidence });
       qc.invalidateQueries({ queryKey: ['profile'] });
     } catch (err) {
@@ -75,12 +92,48 @@ function ProfileForm({ profile }) {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">Your Profile</h1>
-        <p className="text-xs text-zinc-400 mt-1">
-          Used to customize every outreach draft and align candidate credentials with company research.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Your Profile</h1>
+          <p className="text-xs text-zinc-400 mt-1">
+            Used to customize every outreach draft and align candidate credentials with company research.
+          </p>
+        </div>
+
+        {/* Profile Completeness Pill */}
+        <div
+          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto ${
+            isComplete
+              ? 'bg-[#2CB7A5]/10 border-[#2CB7A5]/30 text-[#2CB7A5]'
+              : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+          }`}
+        >
+          {isComplete ? (
+            <>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>100% Complete</span>
+            </>
+          ) : (
+            <>
+              <AlertTriangle className="w-4 h-4" />
+              <span>Incomplete Profile</span>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Incomplete Warning Callout if any field is missing */}
+      {!isComplete && (
+        <div className="border border-amber-500/30 bg-amber-500/10 rounded-2xl p-4 text-xs text-amber-300 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 shrink-0 text-amber-400 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold text-amber-200">Complete Profile Required</p>
+            <p className="text-zinc-300">
+              Please ensure your resume is uploaded and all core fields (Title, Location, Current CTC, Expected CTC, Notice Period) are filled to generate high-converting outreach.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Resume Section */}
       <section className="glass-card p-5 sm:p-6 space-y-4 border border-white/10">
@@ -136,7 +189,7 @@ function ProfileForm({ profile }) {
             full
           />
           <TextField
-            label="Location"
+            label="Location & Work Preference"
             placeholder="e.g. San Francisco, CA or Remote"
             value={fields.location}
             onChange={(v) => setFields((f) => ({ ...f, location: v }))}
@@ -155,16 +208,11 @@ function ProfileForm({ profile }) {
             onChange={(v) => setFields((f) => ({ ...f, expected_ctc: v }))}
           />
           <TextField
-            label="Notice Period"
+            label="Notice Period / Availability"
             placeholder="e.g. Immediate / 30 Days"
             value={fields.notice_period}
             onChange={(v) => setFields((f) => ({ ...f, notice_period: v }))}
-          />
-          <TextField
-            label="Work Authorization"
-            placeholder="e.g. Citizen / Green Card / H-1B"
-            value={fields.work_auth}
-            onChange={(v) => setFields((f) => ({ ...f, work_auth: v }))}
+            full
           />
         </div>
 

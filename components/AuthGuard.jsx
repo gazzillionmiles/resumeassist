@@ -73,6 +73,15 @@ export default function AuthGuard({ children }) {
     };
   }, [hydrated, token, pathname, router, setUser, logout]);
 
+  useEffect(() => {
+    if (!hydrated || checking) return;
+    if (user && user.emailVerified && user.deletion_status !== 'pending_deletion') {
+      if (user.is_profile_complete === false && pathname !== '/onboarding') {
+        router.replace('/onboarding');
+      }
+    }
+  }, [hydrated, checking, user, pathname, router]);
+
   if (!hydrated || !token || checking) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#121316] text-zinc-400 text-sm gap-3">
@@ -249,7 +258,17 @@ export default function AuthGuard({ children }) {
     );
   }
 
-  // 3. Terms Consent Verification
+  // 3. Incomplete Profile Redirect Guard
+  if (user && user.is_profile_complete === false && pathname !== '/onboarding') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#121316] text-zinc-400 text-sm gap-3">
+        <div className="w-4 h-4 border-2 border-[#2CB7A5] border-t-transparent rounded-full animate-spin" />
+        <span>Redirecting to profile setup…</span>
+      </div>
+    );
+  }
+
+  // 4. Terms Consent Verification
   return (
     <>
       {user && !user.has_terms_consent && (

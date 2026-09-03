@@ -1,7 +1,8 @@
-import { getCollections } from '@/lib/server/db/mongodb';
-import { hashVerificationToken, signToken } from '@/lib/server/auth';
-import { json, options, handleError } from '@/lib/server/http';
-import { rateLimit } from '@/lib/server/rateLimit';
+import { getCollections } from '../../../../lib/server/db/mongodb.js';
+import { hashVerificationToken, signToken } from '../../../../lib/server/auth.js';
+import { isProfileComplete } from '../../../../lib/server/profile.js';
+import { json, options, handleError } from '../../../../lib/server/http.js';
+import { rateLimit } from '../../../../lib/server/rateLimit.js';
 
 export const runtime = 'nodejs';
 export async function OPTIONS() { return options(); }
@@ -17,7 +18,7 @@ async function verifyToken(request, rawToken) {
   }
 
   const tokenHash = hashVerificationToken(rawToken.trim());
-  const { users } = await getCollections();
+  const { users, profiles } = await getCollections();
   const user = await users.findOne({ emailVerificationTokenHash: tokenHash });
 
   if (!user) {
@@ -46,6 +47,7 @@ async function verifyToken(request, rawToken) {
     }
   );
 
+  const profile = await profiles.findOne({ user_id: user._id.toString() });
   const token = signToken(user._id.toString());
   return json({
     success: true,
@@ -55,6 +57,7 @@ async function verifyToken(request, rawToken) {
       id: user._id.toString(),
       email: user.email,
       emailVerified: true,
+      is_profile_complete: isProfileComplete(profile),
     },
   });
 }

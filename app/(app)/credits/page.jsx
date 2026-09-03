@@ -103,6 +103,9 @@ export default function CreditsPage() {
           <div className="flex items-center gap-2 text-white font-bold text-sm">
             <Building2 className="w-4 h-4 text-[#2CB7A5]" />
             <span>Direct Company Outreach</span>
+            <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              BETA
+            </span>
           </div>
           <p className="text-xs text-zinc-400 leading-relaxed">
             Consumes <strong className="text-zinc-200">1 credit</strong>. Discovers verified recruiters, analyzes recent company developments, and crafts persona-aware outreach.

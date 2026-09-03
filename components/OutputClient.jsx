@@ -103,6 +103,9 @@ export default function OutputClient({ result }) {
               <div className="flex items-center gap-2 text-zinc-200 text-xs font-bold uppercase tracking-wider">
                 <UserCheck className="w-4 h-4 text-[#2CB7A5]" />
                 <span>Target Recipient</span>
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  BETA
+                </span>
               </div>
               {p.profile_url && (
                 <a

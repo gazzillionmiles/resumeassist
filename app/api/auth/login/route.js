@@ -1,9 +1,10 @@
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { getCollections } from '@/lib/server/db/mongodb';
-import { signToken } from '@/lib/server/auth';
-import { json, options, handleError } from '@/lib/server/http';
-import { rateLimit } from '@/lib/server/rateLimit';
+import { getCollections } from '../../../../lib/server/db/mongodb.js';
+import { signToken } from '../../../../lib/server/auth.js';
+import { isProfileComplete } from '../../../../lib/server/profile.js';
+import { json, options, handleError } from '../../../../lib/server/http.js';
+import { rateLimit } from '../../../../lib/server/rateLimit.js';
 
 const schema = z.object({ email: z.string().email(), password: z.string().min(8) });
 export const runtime = 'nodejs';
@@ -17,7 +18,7 @@ export async function POST(request) {
     }
 
     const { email, password } = schema.parse(await request.json());
-    const { users } = await getCollections();
+    const { users, profiles } = await getCollections();
     const normalizedEmail = email.toLowerCase().trim();
     const user = await users.findOne({ email: normalizedEmail });
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
@@ -28,7 +29,9 @@ export async function POST(request) {
       return json({ error: 'account_purged', message: 'This account has been permanently deleted.' }, { status: 410 });
     }
 
+    const profile = await profiles.findOne({ user_id: user._id.toString() });
     const isVerified = Boolean(user.emailVerified);
+
     return json({
       token: signToken(user._id.toString()),
       user: {
@@ -39,6 +42,7 @@ export async function POST(request) {
         scheduled_purge_at: user.scheduled_purge_at || null,
         has_terms_consent: Boolean(user.has_terms_consent),
         terms_consent_version: user.terms_consent_version || null,
+        is_profile_complete: isProfileComplete(profile),
       },
     });
   } catch (error) { return handleError(error); }

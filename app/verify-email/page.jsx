@@ -100,7 +100,7 @@ function VerifyEmailContent() {
                 Your email has been verified. You now have full access to Outreach.
               </p>
               <button
-                onClick={() => router.push('/generate')}
+                onClick={() => router.push(user?.is_profile_complete ? '/generate' : '/onboarding')}
                 className="w-full py-2.5 px-4 rounded-xl bg-[#2CB7A5] text-[#121316] text-xs font-bold uppercase tracking-wider hover:bg-[#24998A] transition-all cursor-pointer shadow-md"
               >
                 Continue to Outreach

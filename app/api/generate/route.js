@@ -1,30 +1,31 @@
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
-import { requireVerifiedUser } from '@/lib/server/auth';
-import { getCollections } from '@/lib/server/db/mongodb';
-import { callBedrockJSON } from '@/lib/server/services/bedrock';
-import { fetchJobPosting, fetchCompanySources } from '@/lib/server/services/tinyfish';
-import { searchCompanyNews } from '@/lib/server/services/tavily';
-import { finalizeGenerationAccounting } from '@/lib/server/services/generationAccounting';
+import { requireVerifiedUser } from '../../../lib/server/auth.js';
+import { getCollections } from '../../../lib/server/db/mongodb.js';
+import { isProfileComplete, getMissingProfileFields } from '../../../lib/server/profile.js';
+import { callBedrockJSON } from '../../../lib/server/services/bedrock.js';
+import { fetchJobPosting, fetchCompanySources } from '../../../lib/server/services/tinyfish.js';
+import { searchCompanyNews } from '../../../lib/server/services/tavily.js';
+import { finalizeGenerationAccounting } from '../../../lib/server/services/generationAccounting.js';
 import {
   reserveGenerationCredit,
   confirmGenerationCredit,
   refundGenerationCredit,
-} from '@/lib/server/services/credits';
+} from '../../../lib/server/services/credits.js';
 import {
   JD_STRUCTURE_SYSTEM_PROMPT,
   buildJDStructurePrompt,
-} from '@/lib/server/prompts/jdStructure';
+} from '../../../lib/server/prompts/jdStructure.js';
 import {
   COMPANY_RESEARCH_SYSTEM_PROMPT,
   buildCompanyResearchPrompt,
-} from '@/lib/server/prompts/companyResearch';
+} from '../../../lib/server/prompts/companyResearch.js';
 import {
   MESSAGE_GENERATE_SYSTEM_PROMPT,
   buildMessageGeneratePrompt,
-} from '@/lib/server/prompts/messageGenerate';
-import { json, options, handleError } from '@/lib/server/http';
-import { rateLimit } from '@/lib/server/rateLimit';
+} from '../../../lib/server/prompts/messageGenerate.js';
+import { json, options, handleError } from '../../../lib/server/http.js';
+import { rateLimit } from '../../../lib/server/rateLimit.js';
 
 const TONES = ['formal', 'warm_professional', 'direct_concise', 'enthusiastic'];
 const schema = z
@@ -67,7 +68,17 @@ export async function POST(request) {
     const body = schema.parse(await request.json());
     const { profiles, playbookExamples, generations } = await getCollections();
     const profile = await profiles.findOne({ user_id: uid });
-    if (!profile) return json({ error: 'profile_incomplete' }, { status: 400 });
+    if (!isProfileComplete(profile)) {
+      return json(
+        {
+          error: 'profile_incomplete',
+          code: 'PROFILE_INCOMPLETE',
+          message: 'Please complete your profile (upload resume and fill all core details) before generating outreach.',
+          missing_fields: getMissingProfileFields(profile),
+        },
+        { status: 400 }
+      );
+    }
 
     const examples = await playbookExamples.find({ user_id: uid }).sort({ created_at: -1 }).limit(3).toArray();
 
@@ -77,7 +88,6 @@ export async function POST(request) {
       expected_ctc: profile.expected_ctc ?? profile.expectedCtc ?? '',
       notice_period: profile.notice_period ?? profile.noticePeriod ?? '',
       location: profile.location ?? '',
-      work_auth: profile.work_auth ?? profile.workAuth ?? '',
       resume: profile.resume_structured ?? null,
     };
 

@@ -39,7 +39,6 @@ export async function POST(request) {
     const profileContext = profile ? {
       current_title: profile.current_title ?? profile.currentTitle ?? '',
       location: profile.location ?? '',
-      work_auth: profile.work_auth ?? profile.workAuth ?? '',
       resume: profile.resume_structured ?? null,
     } : {};
 

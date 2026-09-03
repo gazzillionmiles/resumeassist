@@ -39,7 +39,8 @@ function LoginForm() {
         analytics.login('email');
       }
 
-      router.replace(params.get('next') || '/generate');
+      const defaultTarget = res.user?.is_profile_complete === false ? '/onboarding' : '/generate';
+      router.replace(params.get('next') || defaultTarget);
     } catch (err) {
       setError(
         err.message || 'Login failed. Please check your credentials.'

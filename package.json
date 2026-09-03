@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test --test-force-exit tests/**/*.test.js",
+    "migrate:remove-work-auth": "node scripts/migrate-remove-work-auth.js",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit"
   },

@@ -82,7 +82,7 @@ export default function Signup() {
 
       if (data?.user?.emailVerified) {
         setUser(data.user);
-        router.replace('/profile');
+        router.replace(data.user.is_profile_complete ? '/generate' : '/onboarding');
       } else {
         setResendStatus({
           type: 'error',

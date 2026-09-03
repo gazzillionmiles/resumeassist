@@ -43,7 +43,7 @@ export default function PrivacyPolicy() {
                 <strong className="text-zinc-200">Account &amp; Authentication:</strong> Your email address, encrypted password hash, email verification status, and consent records.
               </li>
               <li>
-                <strong className="text-zinc-200">Professional Profile &amp; Resume:</strong> Current title, target roles, location, CTC expectations, work authorization, and structured parsed information extracted from your uploaded resume.
+                <strong className="text-zinc-200">Professional Profile &amp; Resume:</strong> Current title, target roles, location, CTC expectations, and structured parsed information extracted from your uploaded resume.
               </li>
               <li>
                 <strong className="text-zinc-200">Target Job Postings &amp; Research:</strong> Job descriptions, URLs provided for analysis, synthesized company news, and personalized outreach drafts.

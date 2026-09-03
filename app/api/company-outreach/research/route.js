@@ -48,7 +48,6 @@ export async function POST(request) {
           expected_ctc: profileDoc.expected_ctc ?? profileDoc.expectedCtc ?? '',
           notice_period: profileDoc.notice_period ?? profileDoc.noticePeriod ?? '',
           location: profileDoc.location ?? '',
-          work_auth: profileDoc.work_auth ?? profileDoc.workAuth ?? '',
           resume: profileDoc.resume_structured ?? null,
         };
       }

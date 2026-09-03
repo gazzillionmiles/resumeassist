@@ -4,6 +4,20 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useGenerationStore } from '@/state/generationStore';
+import {
+  Sparkles,
+  Search,
+  Target,
+  Lightbulb,
+  Mail,
+  MessageSquare,
+  Copy,
+  Share2,
+  Check,
+  ExternalLink,
+  PlusCircle,
+  UserCheck,
+} from 'lucide-react';
 
 export default function OutputClient({ result }) {
   const router = useRouter();
@@ -60,53 +74,110 @@ export default function OutputClient({ result }) {
   }
 
   return (
-    <div className="pt-4">
-      <div className="flex items-center justify-between mb-1">
-        <h1 className="text-2xl">Ready to send</h1>
-        <span className="stamp">Drafted</span>
-      </div>
-      <p className="text-ink/60 mb-4">Edit anything, then copy or share directly.</p>
-
+    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+      {/* Toast Notification */}
       {note && (
-        <div className="fixed top-4 right-4 bg-ink text-paper px-4 py-2 rounded-md shadow-lg text-xs font-mono z-50 animate-fade-in">
-          {note}
+        <div className="fixed top-4 right-4 bg-[#2CB7A5] text-[#121316] px-4 py-2 rounded-xl shadow-2xl text-xs font-bold font-mono z-50 animate-fade-in flex items-center gap-1.5">
+          <Check className="w-3.5 h-3.5" />
+          <span>{note}</span>
         </div>
       )}
 
-      {result.companyResearch && (
-        <section className="card mb-4 border border-moss/30 bg-moss/5 flex flex-col gap-4">
-          <div className="flex items-center justify-between border-b border-moss/20 pb-2">
-            <div>
-              <span className="text-[11px] font-mono text-moss uppercase tracking-wider font-semibold">
-                ✦ Company Research & Intel
-              </span>
-              <h2 className="text-base font-bold text-ink">
-                {result.companyResearch.company_name || result.company_name || 'Target Company'}
-              </h2>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Ready to Send</h1>
+          <p className="text-xs text-zinc-400 mt-1">
+            Grounded company intel synthesized. Edit anything below, then copy or share directly.
+          </p>
+        </div>
+        <span className="stamp">Drafted</span>
+      </div>
+
+      {/* Target Recipient Card (for Company Outreach) */}
+      {(result.selectedPerson || result.selected_person) && (() => {
+        const p = result.selectedPerson || result.selected_person;
+        return (
+          <section className="glass-card p-5 sm:p-6 space-y-3 border border-white/15 bg-white/[0.02]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-zinc-200 text-xs font-bold uppercase tracking-wider">
+                <UserCheck className="w-4 h-4 text-[#2CB7A5]" />
+                <span>Target Recipient</span>
+              </div>
+              {p.profile_url && (
+                <a
+                  href={p.profile_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[#2CB7A5] hover:underline text-xs inline-flex items-center gap-1 font-medium"
+                >
+                  <span>View LinkedIn Profile</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
             </div>
-            <span className="stamp">Grounded Intel</span>
+            <div className="p-4 bg-black/40 rounded-xl border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-sm text-white">{p.name}</h3>
+                <p className="text-xs text-[#2CB7A5] font-medium mt-0.5">{p.title || 'Talent Acquisition'}</p>
+                {p.relevance_reason && (
+                  <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+                    <span className="text-zinc-500 font-semibold">Why Relevant: </span>
+                    {p.relevance_reason}
+                  </p>
+                )}
+              </div>
+              {p.location && (
+                <span className="text-[10px] font-mono text-zinc-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10 self-start sm:self-auto shrink-0">
+                  {p.location}
+                </span>
+              )}
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* SECTION 1: Grounded Company Research & Intel */}
+      {result.companyResearch && (
+        <section className="glass-card p-5 sm:p-6 space-y-6 border border-[#2CB7A5]/30 bg-[#2CB7A5]/5">
+          <div className="flex items-center justify-between border-b border-[#2CB7A5]/20 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#2CB7A5]/10 border border-[#2CB7A5]/30 flex items-center justify-center text-[#2CB7A5]">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono text-[#2CB7A5] uppercase tracking-wider font-bold">
+                  ✦ Grounded Intel
+                </span>
+                <h2 className="text-base font-bold text-white">
+                  {result.companyResearch.company_name || result.company_name || 'Target Company'}
+                </h2>
+              </div>
+            </div>
+            <span className="stamp">Verified Intel</span>
           </div>
 
           {/* PART 1: Here is what Outreach found about this company */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-xs uppercase tracking-wide font-semibold text-ink/70 flex items-center gap-1.5">
-              <span>🔍</span> Here is what Outreach found about this company:
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+              <Search className="w-3.5 h-3.5 text-[#2CB7A5]" />
+              <span>Here is what Outreach found about this company:</span>
             </h3>
 
             {/* Recent Developments */}
             {Array.isArray(result.companyResearch.recent_developments) &&
               result.companyResearch.recent_developments.length > 0 && (
-                <div>
-                  <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-1">
-                    Recent Developments
+                <div className="space-y-2">
+                  <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide block">
+                    Recent Developments &amp; News
                   </span>
-                  <div className="flex flex-col gap-2">
+                  <div className="space-y-2">
                     {result.companyResearch.recent_developments.map((dev, i) => {
                       if (typeof dev === 'string') {
                         return (
                           <div
                             key={i}
-                            className="p-2.5 bg-paper rounded border border-ink/10 text-xs text-ink/80 leading-relaxed"
+                            className="p-3 bg-black/40 rounded-xl border border-white/5 text-xs text-zinc-300 leading-relaxed"
                           >
                             {dev}
                           </div>
@@ -115,20 +186,20 @@ export default function OutputClient({ result }) {
                       return (
                         <div
                           key={i}
-                          className="p-2.5 bg-paper rounded border border-ink/10 flex flex-col gap-0.5"
+                          className="p-3 bg-black/40 rounded-xl border border-white/5 space-y-1"
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold text-xs text-ink">
+                            <span className="font-semibold text-xs text-white">
                               {dev.headline || 'Development'}
                             </span>
                             {dev.date && (
-                              <span className="text-[10px] font-mono text-ink/50 bg-ink/5 px-1.5 py-0.5 rounded border border-ink/10">
+                              <span className="text-[10px] font-mono text-zinc-400 bg-white/5 px-2 py-0.5 rounded-lg border border-white/10">
                                 {dev.date}
                               </span>
                             )}
                           </div>
                           {dev.summary && (
-                            <p className="text-xs text-ink/80 leading-relaxed mt-0.5">
+                            <p className="text-xs text-zinc-400 leading-relaxed">
                               {dev.summary}
                             </p>
                           )}
@@ -141,11 +212,11 @@ export default function OutputClient({ result }) {
 
             {/* Relevance to role */}
             {result.companyResearch.relevance && (
-              <div className="p-2.5 bg-paper rounded border border-ink/10">
-                <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-0.5">
+              <div className="p-3 bg-black/40 rounded-xl border border-white/5 space-y-0.5">
+                <span className="text-[11px] font-semibold text-zinc-400 uppercase block">
                   Why it is relevant to this role
                 </span>
-                <p className="text-xs text-ink/80 leading-relaxed">
+                <p className="text-xs text-zinc-300 leading-relaxed">
                   {result.companyResearch.relevance}
                 </p>
               </div>
@@ -154,18 +225,19 @@ export default function OutputClient({ result }) {
             {/* Sources used */}
             {Array.isArray(result.companyResearch.sources_used) &&
               result.companyResearch.sources_used.length > 0 && (
-                <div className="pt-2 border-t border-ink/10 flex flex-wrap items-center gap-2 text-[11px] text-ink/50">
-                  <span className="font-semibold text-ink/60">Sources used:</span>
+                <div className="pt-2 border-t border-white/10 flex flex-wrap items-center gap-2 text-[11px] text-zinc-400">
+                  <span className="font-semibold text-zinc-300">Sources:</span>
                   {result.companyResearch.sources_used.map((source, i) => (
                     <a
                       key={i}
                       href={source.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-moss hover:underline truncate max-w-[220px]"
+                      className="text-[#2CB7A5] hover:underline truncate max-w-[220px] inline-flex items-center gap-1"
                       title={source.title || source.url}
                     >
-                      {source.title || (source.url ? new URL(source.url).hostname : 'Source')}
+                      <span>{source.title || (source.url ? new URL(source.url).hostname : 'Source')}</span>
+                      <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                     </a>
                   ))}
                 </div>
@@ -175,28 +247,29 @@ export default function OutputClient({ result }) {
           {/* PART 2: Here is how this research was used in your outreach */}
           {(result.companyResearch.conversation_hook ||
             result.companyResearch.candidate_connection) && (
-            <div className="flex flex-col gap-2 pt-3 border-t border-moss/20">
-              <h3 className="text-xs uppercase tracking-wide font-semibold text-moss flex items-center gap-1.5">
-                <span>🎯</span> Here is how this research was used in your outreach:
+            <div className="space-y-3 pt-3 border-t border-[#2CB7A5]/20">
+              <h3 className="text-xs font-bold text-[#2CB7A5] uppercase tracking-wider flex items-center gap-2">
+                <Target className="w-3.5 h-3.5" />
+                <span>Here is how this research was used in your outreach:</span>
               </h3>
 
               {result.companyResearch.conversation_hook && (
-                <div className="p-2.5 bg-paper rounded border border-moss/30 shadow-xs">
-                  <span className="text-[11px] font-semibold text-moss uppercase block mb-0.5">
+                <div className="p-3.5 bg-black/40 rounded-xl border border-[#2CB7A5]/30 space-y-1">
+                  <span className="text-[11px] font-bold text-[#2CB7A5] uppercase block">
                     Conversation / Personalization Hook
                   </span>
-                  <p className="text-xs text-ink font-medium leading-relaxed">
+                  <p className="text-xs text-white font-medium leading-relaxed">
                     {result.companyResearch.conversation_hook}
                   </p>
                 </div>
               )}
 
               {result.companyResearch.candidate_connection && (
-                <div className="p-2.5 bg-paper rounded border border-ink/10">
-                  <span className="text-[11px] font-semibold text-ink/60 uppercase block mb-0.5">
-                    Candidate Connection
+                <div className="p-3 bg-black/40 rounded-xl border border-white/5 space-y-1">
+                  <span className="text-[11px] font-semibold text-zinc-400 uppercase block">
+                    Candidate Connection &amp; Background Alignment
                   </span>
-                  <p className="text-xs text-ink/80 leading-relaxed">
+                  <p className="text-xs text-zinc-300 leading-relaxed">
                     {result.companyResearch.candidate_connection}
                   </p>
                 </div>
@@ -207,22 +280,23 @@ export default function OutputClient({ result }) {
           {/* PART 3: Interview Talking Points */}
           {Array.isArray(result.companyResearch.interview_points) &&
             result.companyResearch.interview_points.length > 0 && (
-              <div className="flex flex-col gap-2 pt-3 border-t border-moss/20">
+              <div className="space-y-3 pt-3 border-t border-[#2CB7A5]/20">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs uppercase tracking-wide font-semibold text-moss flex items-center gap-1.5">
-                    <span>💡</span> Interview Talking Points & Strategic Questions:
+                  <h3 className="text-xs font-bold text-[#2CB7A5] uppercase tracking-wider flex items-center gap-2">
+                    <Lightbulb className="w-3.5 h-3.5" />
+                    <span>Interview Talking Points &amp; Strategic Questions:</span>
                   </h3>
-                  <span className="text-[10px] font-mono text-ink/40">Ready for calls</span>
+                  <span className="text-[10px] font-mono text-zinc-500">Ready for calls</span>
                 </div>
-                <div className="flex flex-col gap-2">
+                <div className="space-y-2">
                   {result.companyResearch.interview_points.map((item, i) => {
                     if (typeof item === 'string') {
                       return (
                         <div
                           key={i}
-                          className="p-2.5 bg-paper rounded border border-ink/10 text-xs text-ink/80 leading-relaxed"
+                          className="p-3 bg-black/40 rounded-xl border border-white/5 text-xs text-zinc-300 leading-relaxed"
                         >
-                          <span className="font-semibold text-ink block mb-0.5">Point {i + 1}</span>
+                          <span className="font-semibold text-white block mb-0.5">Point {i + 1}</span>
                           {item}
                         </div>
                       );
@@ -230,18 +304,18 @@ export default function OutputClient({ result }) {
                     return (
                       <div
                         key={i}
-                        className="p-2.5 bg-paper rounded border border-ink/10 flex flex-col gap-1"
+                        className="p-3 bg-black/40 rounded-xl border border-white/5 space-y-1"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-moss/10 text-moss font-mono text-[11px] font-bold flex items-center justify-center shrink-0">
+                          <span className="w-5 h-5 rounded-lg bg-[#2CB7A5]/10 text-[#2CB7A5] font-mono text-[10px] font-bold flex items-center justify-center shrink-0 border border-[#2CB7A5]/20">
                             {i + 1}
                           </span>
-                          <span className="font-semibold text-xs text-ink">
+                          <span className="font-semibold text-xs text-white">
                             {item.point || 'Interview Angle'}
                           </span>
                         </div>
                         {item.context && (
-                          <p className="text-xs text-ink/80 leading-relaxed pl-7">
+                          <p className="text-xs text-zinc-400 leading-relaxed pl-7">
                             {item.context}
                           </p>
                         )}
@@ -254,87 +328,109 @@ export default function OutputClient({ result }) {
         </section>
       )}
 
-      <section className="card mb-4">
-        <p className="text-xs uppercase tracking-wide text-ink/40 font-medium mb-2">Email</p>
-        <label className="block mb-2">
-          <span className="text-[11px] text-ink/50 uppercase">Subject line</span>
+      {/* SECTION 2: Email Draft */}
+      <section className="glass-card p-5 sm:p-6 space-y-4 border border-white/10">
+        <div className="flex items-center gap-2 text-zinc-200 text-xs font-bold uppercase tracking-wider">
+          <Mail className="w-4 h-4 text-[#2CB7A5]" />
+          <span>Email Outreach</span>
+        </div>
+
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-semibold text-zinc-400 uppercase">Subject line</span>
           <input
-            className="input-field font-medium mt-1"
+            className="input-field text-xs font-semibold"
             value={emailSubject}
             onChange={(e) => setEmailSubject(e.target.value)}
             onBlur={persist}
           />
-        </label>
-        <label className="block">
-          <span className="text-[11px] text-ink/50 uppercase">Email body</span>
+        </div>
+
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-semibold text-zinc-400 uppercase">Email body</span>
           <textarea
-            className="input-field min-h-40 mt-1"
+            className="input-field min-h-44 text-xs leading-relaxed"
             value={emailBody}
             onChange={(e) => setEmailBody(e.target.value)}
             onBlur={persist}
           />
-        </label>
-        <div className="flex gap-2 mt-3">
+        </div>
+
+        <div className="flex gap-2 pt-1">
           <button
             type="button"
-            className="btn-secondary flex-1"
+            className="btn-secondary flex-1 py-2.5 text-xs font-semibold cursor-pointer"
             onClick={() => copy(`${emailSubject}\n\n${emailBody}`, 'Email')}
           >
-            Copy email
+            <Copy className="w-3.5 h-3.5" />
+            <span>Copy Email</span>
           </button>
           <button
             type="button"
-            className="btn-secondary flex-1"
+            className="btn-secondary flex-1 py-2.5 text-xs font-semibold cursor-pointer"
             onClick={() => share(`${emailSubject}\n\n${emailBody}`, 'Email')}
           >
-            Share
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share</span>
           </button>
         </div>
       </section>
 
-      <section className="card mb-6">
-        <p className="text-xs uppercase tracking-wide text-ink/40 font-medium mb-2">
-          LinkedIn Message (under 300 chars)
-        </p>
-        <textarea
-          className="input-field min-h-24"
-          value={linkedinMessage}
-          onChange={(e) => setLinkedinMessage(e.target.value)}
-          onBlur={persist}
-        />
-        <div className="flex items-center justify-between mt-1 text-[11px] text-ink/50 font-mono">
-          <span>{linkedinMessage.length} / 300 characters</span>
-          {linkedinMessage.length > 300 && (
-            <span className="text-rust font-sans font-medium">Exceeds LinkedIn note limit</span>
-          )}
+      {/* SECTION 3: LinkedIn Note Draft */}
+      <section className="glass-card p-5 sm:p-6 space-y-4 border border-white/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-zinc-200 text-xs font-bold uppercase tracking-wider">
+            <MessageSquare className="w-4 h-4 text-[#2CB7A5]" />
+            <span>LinkedIn Note</span>
+          </div>
+          <span className="text-[11px] font-mono text-zinc-500">Max 300 chars</span>
         </div>
-        <div className="flex gap-2 mt-3">
+
+        <div className="space-y-1.5">
+          <textarea
+            className="input-field min-h-24 text-xs leading-relaxed"
+            value={linkedinMessage}
+            onChange={(e) => setLinkedinMessage(e.target.value)}
+            onBlur={persist}
+          />
+          <div className="flex items-center justify-between text-[11px] text-zinc-500 font-mono">
+            <span>{linkedinMessage.length} / 300 characters</span>
+            {linkedinMessage.length > 300 && (
+              <span className="text-red-400 font-sans font-medium">Exceeds 300 character limit</span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-1">
           <button
             type="button"
-            className="btn-secondary flex-1"
-            onClick={() => copy(linkedinMessage, 'LinkedIn message')}
+            className="btn-secondary flex-1 py-2.5 text-xs font-semibold cursor-pointer"
+            onClick={() => copy(linkedinMessage, 'LinkedIn note')}
           >
-            Copy LinkedIn note
+            <Copy className="w-3.5 h-3.5" />
+            <span>Copy Note</span>
           </button>
           <button
             type="button"
-            className="btn-secondary flex-1"
-            onClick={() => share(linkedinMessage, 'LinkedIn message')}
+            className="btn-secondary flex-1 py-2.5 text-xs font-semibold cursor-pointer"
+            onClick={() => share(linkedinMessage, 'LinkedIn note')}
           >
-            Share
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Share</span>
           </button>
         </div>
       </section>
 
+      {/* Action Footer */}
       <button
         type="button"
-        className="btn-primary w-full"
+        className="btn-primary w-full py-3.5 text-xs font-bold uppercase tracking-wider cursor-pointer shadow-lg flex items-center justify-center gap-2"
         onClick={() => {
           clear();
           router.push('/generate');
         }}
       >
-        Draft another message
+        <PlusCircle className="w-4 h-4" />
+        <span>Draft Another Outreach Message</span>
       </button>
     </div>
   );

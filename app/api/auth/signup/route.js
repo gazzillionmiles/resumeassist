@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getCollections } from '@/lib/server/db/mongodb';
 import { signToken, generateVerificationToken } from '@/lib/server/auth';
 import { sendVerificationEmail } from '@/lib/server/services/email';
+import { FREE_CREDITS } from '@/lib/server/services/credits';
 import { json, options, handleError } from '@/lib/server/http';
 import { rateLimit } from '@/lib/server/rateLimit';
 import { ObjectId } from 'mongodb';
@@ -19,7 +20,7 @@ export async function POST(request) {
     }
 
     const { email, password } = schema.parse(await request.json());
-    const { users } = await getCollections();
+    const { users, creditTransactions } = await getCollections();
     const normalizedEmail = email.toLowerCase().trim();
     const existing = await users.findOne({ email: normalizedEmail });
     if (existing) {
@@ -37,8 +38,20 @@ export async function POST(request) {
       emailVerified: false,
       emailVerificationTokenHash: tokenHash,
       emailVerificationExpiresAt: expiresAt,
+      free_credits: FREE_CREDITS,
+      purchased_credits: 0,
+      free_credits_granted: true,
       created_at: new Date(),
       updated_at: new Date(),
+    });
+
+    await creditTransactions.insertOne({
+      user_id: userId,
+      type: 'free_grant',
+      amount: FREE_CREDITS,
+      generation_id: null,
+      created_at: new Date(),
+      metadata: { source: 'welcome_bonus' },
     });
 
     let emailSent = false;
@@ -55,6 +68,11 @@ export async function POST(request) {
         id: userId.toString(),
         email: normalizedEmail,
         emailVerified: false,
+        credits: {
+          free: FREE_CREDITS,
+          purchased: 0,
+          total: FREE_CREDITS,
+        },
       },
       emailSent,
       message: 'Account created. Please verify your email.',

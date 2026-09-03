@@ -57,6 +57,28 @@ export const useAuthStore = create((set) => ({
 
     set({ token, user });
   },
+  updateUser: (fields) => {
+    set((state) => {
+      if (!state.user) return state;
+      const updated = { ...state.user, ...fields };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return { user: updated };
+    });
+  },
+  updateCredits: ({ free, purchased, total }) => {
+    set((state) => {
+      if (!state.user) return state;
+      const currentCredits = state.user.credits || {};
+      const newCredits = {
+        free: typeof free === 'number' ? free : currentCredits.free ?? 0,
+        purchased: typeof purchased === 'number' ? purchased : currentCredits.purchased ?? 0,
+        total: typeof total === 'number' ? total : (free ?? currentCredits.free ?? 0) + (purchased ?? currentCredits.purchased ?? 0),
+      };
+      const updated = { ...state.user, credits: newCredits };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return { user: updated };
+    });
+  },
   logout: () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

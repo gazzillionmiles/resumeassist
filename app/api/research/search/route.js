@@ -15,11 +15,11 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   try {
-    await requireVerifiedUser(request);
+    const uid = await requireVerifiedUser(request);
     const { company, roleTitle } = schema.parse(await request.json());
     console.log(`[api/research/search] Request received for company: "${company}", roleTitle: "${roleTitle || ''}"`);
 
-    const sources = await searchCompanyNews({ company, roleTitle });
+    const sources = await searchCompanyNews({ company, roleTitle, userId: uid });
     console.log(`[api/research/search] Returning ${sources.length} sources to frontend.`);
 
     return json({

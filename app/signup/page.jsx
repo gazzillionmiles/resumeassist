@@ -2,9 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/state/authStore';
+import { identifyUser, analytics } from '@/lib/client/analytics';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { Lock, Mail, ArrowRight, CheckCircle, RefreshCw } from 'lucide-react';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -26,6 +31,10 @@ export default function Signup() {
       const res = await api.signup(email, password);
       if (res.token) {
         setAuth(res.token, res.user || { email, emailVerified: false });
+        if (res.user?.id) {
+          identifyUser(res.user.id);
+        }
+        analytics.signup('email');
       }
       setSignedUpEmail(email);
     } catch (err) {
@@ -80,102 +89,167 @@ export default function Signup() {
 
   if (signedUpEmail) {
     return (
-      <div className="min-h-screen flex flex-col justify-center px-6 max-w-sm mx-auto w-full">
-        <div className="card text-center py-8 px-6 shadow-sm">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-flare/15 text-flareDark mb-4">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-display mb-2">Check your email</h1>
-          <p className="text-sm text-ink/70 mb-2">
-            Your verification link has been sent to your email address.
-          </p>
-          <p className="font-mono text-xs text-ink/90 bg-paper px-3 py-1.5 rounded inline-block mb-6">
-            {signedUpEmail}
-          </p>
-
-          {resendStatus && (
-            <div
-              className={`text-xs p-3 rounded mb-4 ${
-                resendStatus.type === 'success'
-                  ? 'bg-mossLight/30 text-moss border border-moss/30'
-                  : 'bg-rust/10 text-rust border border-rust/20'
-              }`}
-            >
-              {resendStatus.text}
+      <div className="min-h-screen flex flex-col bg-[#121316] text-[#F4F4F5]">
+        <Header />
+        <div className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-md rounded-2xl bg-[#18191D] border border-white/10 p-6 sm:p-8 shadow-2xl text-center space-y-5">
+            <div className="w-12 h-12 rounded-2xl bg-[#2CB7A5]/10 border border-[#2CB7A5]/30 flex items-center justify-center text-[#2CB7A5] mx-auto">
+              <Mail className="w-6 h-6" />
             </div>
-          )}
 
-          <div className="flex flex-col gap-2.5">
-            <button
-              onClick={handleCheckVerified}
-              disabled={loading}
-              className="btn-primary w-full cursor-pointer text-sm py-2.5"
-            >
-              {loading ? 'Checking status…' : "I've verified my email"}
-            </button>
-            <button
-              onClick={handleResend}
-              disabled={resending}
-              className="btn-secondary w-full cursor-pointer text-sm py-2.5"
-            >
-              {resending ? 'Sending…' : 'Resend verification email'}
-            </button>
-            <button
-              onClick={() => {
-                setSignedUpEmail(null);
-                setPassword('');
-                setResendStatus(null);
-              }}
-              className="text-xs text-ink/50 hover:text-ink mt-3 cursor-pointer"
-            >
-              Change email / Sign up with another
-            </button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Check your email</h1>
+              <p className="text-xs text-zinc-400 mt-1">
+                We sent a verification link to your email address.
+              </p>
+            </div>
+
+            <div className="font-mono text-xs text-zinc-200 bg-black/40 border border-white/5 px-3 py-2 rounded-xl inline-block">
+              {signedUpEmail}
+            </div>
+
+            {resendStatus && (
+              <div
+                className={`text-xs p-3 rounded-xl ${
+                  resendStatus.type === 'success'
+                    ? 'bg-[#2CB7A5]/10 text-[#2CB7A5] border border-[#2CB7A5]/30'
+                    : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                }`}
+              >
+                {resendStatus.text}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={handleCheckVerified}
+                disabled={loading}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#2CB7A5] text-[#121316] text-xs font-bold uppercase tracking-wider hover:bg-[#24998A] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md"
+              >
+                <CheckCircle className="w-4 h-4" />
+                <span>{loading ? 'Checking status…' : "I've verified my email"}</span>
+              </button>
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                className="w-full py-2.5 px-4 rounded-xl border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white hover:bg-white/5 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
+                <span>{resending ? 'Sending…' : 'Resend verification email'}</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSignedUpEmail(null);
+                  setPassword('');
+                  setResendStatus(null);
+                }}
+                className="text-xs text-zinc-500 hover:text-zinc-300 mt-2 cursor-pointer"
+              >
+                Change email / Sign up with another
+              </button>
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center px-6 max-w-sm mx-auto w-full">
-      <h1 className="text-3xl mb-1">Create your account</h1>
-      <p className="text-ink/60 mb-8">One profile, tailored outreach for every role.</p>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <input
-          className="input-field"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          className="input-field"
-          type="password"
-          placeholder="Password (min 8 characters)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={8}
-          required
-        />
-        {error && <p className="text-rust text-sm">{error}</p>}
-        <button className="btn-primary mt-2 cursor-pointer" disabled={loading}>
-          {loading ? 'Creating account…' : 'Sign up'}
-        </button>
-      </form>
-      <p className="text-sm text-ink/60 mt-6">
-        Already have an account?{' '}
-        <Link href="/login" className="text-moss font-medium">
-          Log in
-        </Link>
-      </p>
+    <div className="min-h-screen flex flex-col bg-[#121316] text-[#F4F4F5]">
+      <Header />
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md rounded-2xl bg-[#18191D] border border-white/10 p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <Image
+              src="/Outreach.png"
+              alt="Outreach Logo"
+              width={48}
+              height={48}
+              className="w-12 h-12 rounded-2xl object-contain mx-auto shadow-lg"
+              priority
+            />
+            <h1 className="text-2xl font-bold tracking-tight text-white">Create your account</h1>
+            <p className="text-xs text-zinc-400">One profile, tailored outreach for every role</p>
+          </div>
+
+          {error && (
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-300 block">Email address</label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  className="input-field pl-10"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-300 block">
+                Password <span className="text-zinc-500 font-normal">(min 8 characters)</span>
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  className="input-field pl-10"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  minLength={8}
+                  required
+                />
+              </div>
+            </div>
+
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
+              By signing up, you agree to our{' '}
+              <Link href="/terms" target="_blank" className="text-[#2CB7A5] hover:underline">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" target="_blank" className="text-[#2CB7A5] hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </p>
+
+            <button
+              type="submit"
+              className="w-full py-3 px-4 rounded-xl bg-[#2CB7A5] hover:bg-[#24998A] text-[#121316] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? (
+                <span>Creating account…</span>
+              ) : (
+                <>
+                  <span>Create Account</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="text-center text-xs text-zinc-400 pt-2 border-t border-white/5">
+            Already have an account?{' '}
+            <Link href="/login" className="text-[#2CB7A5] font-semibold hover:underline">
+              Log in
+            </Link>
+          </div>
+        </div>
+      </div>
+      <Footer />
     </div>
   );
 }

@@ -104,7 +104,8 @@ export async function POST(request) {
         jdStructured,
         profile: profileContext,
         articles: fetchedArticles,
-      })
+      }),
+      { userId: uid, action: 'company_research' }
     );
     
     console.log(`[api/research/analyze] === BEDROCK ANALYSIS COMPLETE ===`);

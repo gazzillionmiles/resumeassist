@@ -16,7 +16,12 @@ export default function OutputPage() {
   }, [result, router]);
 
   if (!result) {
-    return <div className="pt-4 text-ink/50 text-sm">Loading output…</div>;
+    return (
+      <div className="flex items-center justify-center py-20 text-zinc-500 text-xs">
+        <div className="w-4 h-4 border-2 border-[#2CB7A5] border-t-transparent rounded-full animate-spin mr-2" />
+        <span>Loading output…</span>
+      </div>
+    );
   }
 
   return <OutputClient result={result} />;

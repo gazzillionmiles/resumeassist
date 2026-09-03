@@ -17,6 +17,10 @@ export default function HistoryOutput() {
         .then((g) =>
           setResult({
             generationId: g.id,
+            generation_type: g.generation_type,
+            companyName: g.company_name,
+            selectedPerson: g.selected_person || null,
+            targetPeople: g.target_people || null,
             emailSubject: g.email_subject,
             emailBody: g.email_output,
             linkedinMessage: g.linkedin_output,
@@ -30,16 +34,22 @@ export default function HistoryOutput() {
 
   if (error) {
     return (
-      <div className="pt-4">
-        <div className="border border-rust/40 bg-rust/5 rounded-md p-3 text-sm text-rust">
-          {error}
+      <div className="py-8">
+        <div className="border border-red-500/30 bg-red-500/10 rounded-2xl p-4 text-xs text-red-400">
+          <p className="font-semibold text-red-300">Notice</p>
+          <p className="mt-0.5">{error}</p>
         </div>
       </div>
     );
   }
 
   if (!result) {
-    return <div className="pt-4 text-ink/50 text-sm">Loading drafted message…</div>;
+    return (
+      <div className="flex items-center justify-center py-20 text-zinc-500 text-xs">
+        <div className="w-4 h-4 border-2 border-[#2CB7A5] border-t-transparent rounded-full animate-spin mr-2" />
+        <span>Loading drafted message…</span>
+      </div>
+    );
   }
 
   return <OutputClient result={result} />;

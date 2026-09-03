@@ -25,8 +25,11 @@ export async function GET(request) {
     return json(
       rows.map((r) => ({
         id: r._id.toString(),
+        generation_type: r.generation_type || (r.fetch_status === 'company_search' ? 'company_outreach' : 'job_outreach'),
         company_name: r.company_name,
         role_title: r.role_title,
+        target_people: r.target_people || null,
+        selected_person: r.selected_person || null,
         tone: r.tone,
         fetch_status: r.fetch_status,
         was_edited: r.was_edited,

@@ -28,7 +28,7 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   try {
-    await requireVerifiedUser(request);
+    const uid = await requireVerifiedUser(request);
     const { jobUrl, jdRawText } = schema.parse(await request.json());
     let rawText = jdRawText;
     let sourceDomain = null;
@@ -46,7 +46,8 @@ export async function POST(request) {
 
     const jdStructured = await callBedrockJSON(
       JD_STRUCTURE_SYSTEM_PROMPT,
-      buildJDStructurePrompt(rawText)
+      buildJDStructurePrompt(rawText),
+      { userId: uid, action: 'jd_structure' }
     );
 
     if (jdStructured.error === 'not_a_job_posting') {

@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/state/authStore';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { Mail, CheckCircle2, AlertTriangle, Clock, RefreshCw } from 'lucide-react';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -73,206 +76,199 @@ function VerifyEmailContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center px-6 max-w-md mx-auto w-full">
-      <div className="card p-8 text-center shadow-sm">
-        {state === 'verifying' && (
-          <div>
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-mossLight/30 text-moss mb-4 animate-pulse">
-              <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-              </svg>
-            </div>
-            <h1 className="text-2xl font-display mb-2">Verifying your email</h1>
-            <p className="text-sm text-ink/60">Please wait a moment while we verify your account…</p>
-          </div>
-        )}
-
-        {state === 'success' && (
-          <div>
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-mossLight/40 text-moss mb-4">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-display mb-2">Email verified.</h1>
-            <p className="text-sm text-ink/70 mb-6">
-              Your email address has been successfully verified. You now have full access to Outreach.
-            </p>
-            <button
-              onClick={() => router.push('/generate')}
-              className="btn-primary w-full cursor-pointer text-sm"
-            >
-              Continue to Outreach
-            </button>
-          </div>
-        )}
-
-        {state === 'expired' && (
-          <div>
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rust/15 text-rust mb-4">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-display mb-2">Your verification link has expired.</h1>
-            <p className="text-sm text-ink/70 mb-6">
-              {errorMessage || 'Verification links are valid for 30 minutes. You can request a fresh one below.'}
-            </p>
-
-            {resendMessage && (
-              <div
-                className={`text-xs p-3 rounded mb-4 ${
-                  resendMessage.type === 'success'
-                    ? 'bg-mossLight/30 text-moss border border-moss/30'
-                    : 'bg-rust/10 text-rust border border-rust/20'
-                }`}
-              >
-                {resendMessage.text}
+    <div className="min-h-screen flex flex-col bg-[#121316] text-[#F4F4F5]">
+      <Header />
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md rounded-2xl bg-[#18191D] border border-white/10 p-6 sm:p-8 shadow-2xl text-center space-y-5">
+          {state === 'verifying' && (
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#2CB7A5]/10 border border-[#2CB7A5]/30 flex items-center justify-center text-[#2CB7A5] mx-auto animate-pulse">
+                <RefreshCw className="w-6 h-6 animate-spin" />
               </div>
-            )}
+              <h1 className="text-2xl font-bold tracking-tight text-white">Verifying your email</h1>
+              <p className="text-xs text-zinc-400">Please wait while we confirm your account…</p>
+            </div>
+          )}
 
-            <form onSubmit={handleResend} className="flex flex-col gap-3">
-              {!user?.email && (
+          {state === 'success' && (
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#2CB7A5]/10 border border-[#2CB7A5]/30 flex items-center justify-center text-[#2CB7A5] mx-auto">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Email verified!</h1>
+              <p className="text-xs text-zinc-400">
+                Your email has been verified. You now have full access to Outreach.
+              </p>
+              <button
+                onClick={() => router.push('/generate')}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#2CB7A5] text-[#121316] text-xs font-bold uppercase tracking-wider hover:bg-[#24998A] transition-all cursor-pointer shadow-md"
+              >
+                Continue to Outreach
+              </button>
+            </div>
+          )}
+
+          {state === 'expired' && (
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 mx-auto">
+                <Clock className="w-6 h-6" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Link expired</h1>
+              <p className="text-xs text-zinc-400">
+                {errorMessage || 'Verification links expire after 30 minutes. You can request a fresh link below.'}
+              </p>
+
+              {resendMessage && (
+                <div
+                  className={`text-xs p-3 rounded-xl ${
+                    resendMessage.type === 'success'
+                      ? 'bg-[#2CB7A5]/10 text-[#2CB7A5] border border-[#2CB7A5]/30'
+                      : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                  }`}
+                >
+                  {resendMessage.text}
+                </div>
+              )}
+
+              <form onSubmit={handleResend} className="space-y-3">
+                {!user?.email && (
+                  <input
+                    className="input-field text-xs"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    required
+                  />
+                )}
+                <button
+                  type="submit"
+                  disabled={resending}
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#2CB7A5] text-[#121316] text-xs font-bold uppercase tracking-wider hover:bg-[#24998A] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {resending ? 'Sending…' : 'Send new verification email'}
+                </button>
+              </form>
+
+              <div className="pt-2">
+                <Link href="/login" className="text-xs text-[#2CB7A5] hover:underline">
+                  Back to login
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {state === 'invalid' && (
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/25 flex items-center justify-center text-red-400 mx-auto">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Invalid link</h1>
+              <p className="text-xs text-zinc-400">
+                {errorMessage || 'This verification link is invalid or has already been used.'}
+              </p>
+
+              {resendMessage && (
+                <div
+                  className={`text-xs p-3 rounded-xl ${
+                    resendMessage.type === 'success'
+                      ? 'bg-[#2CB7A5]/10 text-[#2CB7A5] border border-[#2CB7A5]/30'
+                      : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                  }`}
+                >
+                  {resendMessage.text}
+                </div>
+              )}
+
+              <form onSubmit={handleResend} className="space-y-3">
+                {!user?.email && (
+                  <input
+                    className="input-field text-xs"
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    required
+                  />
+                )}
+                <button
+                  type="submit"
+                  disabled={resending}
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#2CB7A5] text-[#121316] text-xs font-bold uppercase tracking-wider hover:bg-[#24998A] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {resending ? 'Sending…' : 'Send new verification email'}
+                </button>
+              </form>
+
+              <div className="pt-2">
+                <Link href="/login" className="text-xs text-[#2CB7A5] hover:underline">
+                  Back to login
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {state === 'no_token' && (
+            <div className="space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#2CB7A5]/10 border border-[#2CB7A5]/30 flex items-center justify-center text-[#2CB7A5] mx-auto">
+                <Mail className="w-6 h-6" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Email verification</h1>
+              <p className="text-xs text-zinc-400">
+                Enter your email address to receive a fresh verification link.
+              </p>
+
+              {resendMessage && (
+                <div
+                  className={`text-xs p-3 rounded-xl ${
+                    resendMessage.type === 'success'
+                      ? 'bg-[#2CB7A5]/10 text-[#2CB7A5] border border-[#2CB7A5]/30'
+                      : 'bg-red-500/10 text-red-400 border border-red-500/30'
+                  }`}
+                >
+                  {resendMessage.text}
+                </div>
+              )}
+
+              <form onSubmit={handleResend} className="space-y-3">
                 <input
-                  className="input-field text-sm"
+                  className="input-field text-xs"
                   type="email"
-                  placeholder="Enter your email address"
-                  value={emailInput}
+                  placeholder="you@example.com"
+                  value={emailInput || user?.email || ''}
                   onChange={(e) => setEmailInput(e.target.value)}
                   required
                 />
-              )}
-              <button
-                type="submit"
-                disabled={resending}
-                className="btn-primary w-full cursor-pointer text-sm"
-              >
-                {resending ? 'Sending…' : 'Send new verification email'}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={resending}
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#2CB7A5] text-[#121316] text-xs font-bold uppercase tracking-wider hover:bg-[#24998A] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {resending ? 'Sending…' : 'Send verification email'}
+                </button>
+              </form>
 
-            <div className="mt-4">
-              <Link href="/login" className="text-xs text-moss hover:underline">
-                Back to log in
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {state === 'invalid' && (
-          <div>
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rust/15 text-rust mb-4">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-display mb-2">Invalid verification link</h1>
-            <p className="text-sm text-ink/70 mb-6">
-              {errorMessage || 'This verification link is invalid or has already been used.'}
-            </p>
-
-            {resendMessage && (
-              <div
-                className={`text-xs p-3 rounded mb-4 ${
-                  resendMessage.type === 'success'
-                    ? 'bg-mossLight/30 text-moss border border-moss/30'
-                    : 'bg-rust/10 text-rust border border-rust/20'
-                }`}
-              >
-                {resendMessage.text}
+              <div className="pt-2 flex justify-center gap-4 text-xs text-zinc-500">
+                <Link href="/login" className="hover:text-zinc-300">
+                  Log in
+                </Link>
+                <span>&bull;</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    router.push('/login');
+                  }}
+                  className="hover:text-zinc-300 cursor-pointer"
+                >
+                  Log out
+                </button>
               </div>
-            )}
-
-            <form onSubmit={handleResend} className="flex flex-col gap-3">
-              {!user?.email && (
-                <input
-                  className="input-field text-sm"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  required
-                />
-              )}
-              <button
-                type="submit"
-                disabled={resending}
-                className="btn-primary w-full cursor-pointer text-sm"
-              >
-                {resending ? 'Sending…' : 'Send new verification email'}
-              </button>
-            </form>
-
-            <div className="mt-4">
-              <Link href="/login" className="text-xs text-moss hover:underline">
-                Back to log in
-              </Link>
             </div>
-          </div>
-        )}
-
-        {state === 'no_token' && (
-          <div>
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-flare/15 text-flareDark mb-4">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-display mb-2">Email verification</h1>
-            <p className="text-sm text-ink/70 mb-6">
-              Enter your email address to receive a verification link.
-            </p>
-
-            {resendMessage && (
-              <div
-                className={`text-xs p-3 rounded mb-4 ${
-                  resendMessage.type === 'success'
-                    ? 'bg-mossLight/30 text-moss border border-moss/30'
-                    : 'bg-rust/10 text-rust border border-rust/20'
-                }`}
-              >
-                {resendMessage.text}
-              </div>
-            )}
-
-            <form onSubmit={handleResend} className="flex flex-col gap-3">
-              <input
-                className="input-field text-sm"
-                type="email"
-                placeholder="Enter your email address"
-                value={emailInput || user?.email || ''}
-                onChange={(e) => setEmailInput(e.target.value)}
-                required
-              />
-              <button
-                type="submit"
-                disabled={resending}
-                className="btn-primary w-full cursor-pointer text-sm"
-              >
-                {resending ? 'Sending…' : 'Send verification email'}
-              </button>
-            </form>
-
-            <div className="mt-6 flex justify-center gap-4 text-xs text-ink/50">
-              <Link href="/login" className="hover:text-ink">
-                Log in
-              </Link>
-              <span>•</span>
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  router.push('/login');
-                }}
-                className="hover:text-ink cursor-pointer"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }
@@ -281,7 +277,7 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">
+        <div className="min-h-screen flex items-center justify-center bg-[#121316] text-zinc-500 text-sm">
           Loading…
         </div>
       }

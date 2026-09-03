@@ -1,6 +1,60 @@
 'use client';
+import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/state/authStore';
-const TABS=[{href:'/generate',label:'Send'},{href:'/history',label:'History'},{href:'/playbook',label:'Playbook'},{href:'/profile',label:'Profile'}];
-export default function Shell({children}){const pathname=usePathname();const router=useRouter();const logout=useAuthStore(s=>s.logout);return <div className="min-h-screen flex flex-col"><header className="px-5 pt-6 pb-4 flex items-center justify-between"><Link href="/generate"><span className="stamp">Outreach</span></Link><button className="text-xs text-ink/50 hover:text-ink" onClick={()=>{logout();router.replace('/login')}}>Log out</button></header><main className="flex-1 px-5 pb-24 max-w-lg w-full mx-auto">{children}</main><nav className="fixed bottom-0 left-0 right-0 bg-paperRaised border-t border-ink/10"><div className="max-w-lg mx-auto flex justify-around">{TABS.map(tab=>{const active=pathname===tab.href||pathname.startsWith(`${tab.href}/`);return <Link key={tab.href} href={tab.href} className={`flex-1 text-center py-3 text-sm font-medium ${active?'text-ink border-t-2 border-flare -mt-px':'text-ink/50'}`}>{tab.label}</Link>})}</div></nav></div>}
+import { usePathname } from 'next/navigation';
+import Header from './Header';
+import Footer from './Footer';
+import { Sparkles, History, BookOpen, User } from 'lucide-react';
+
+const TABS = [
+  { href: '/generate', label: 'Send', icon: Sparkles },
+  { href: '/history', label: 'History', icon: History },
+  { href: '/playbook', label: 'Playbook', icon: BookOpen },
+  { href: '/profile', label: 'Profile', icon: User },
+];
+
+export default function Shell({ children }) {
+  const pathname = usePathname();
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#121316] text-[#F4F4F5]">
+      <Header />
+
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-28 md:pb-12">
+        {children}
+      </main>
+
+      <Footer />
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#121316]/90 backdrop-blur-xl border-t border-white/10 px-2 py-1.5 shadow-2xl">
+        <div className="max-w-md mx-auto flex items-center justify-around">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-[11px] font-medium transition-all ${
+                  active
+                    ? 'text-[#2CB7A5] font-semibold'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <div
+                  className={`p-1 rounded-lg ${
+                    active ? 'bg-[#2CB7A5]/15' : 'bg-transparent'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </div>
+                <span>{tab.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </div>
+  );
+}

@@ -24,6 +24,10 @@ export async function POST(request) {
       return json({ error: 'invalid_credentials', message: 'Invalid email or password.' }, { status: 401 });
     }
 
+    if (user.deletion_status === 'purged') {
+      return json({ error: 'account_purged', message: 'This account has been permanently deleted.' }, { status: 410 });
+    }
+
     const isVerified = Boolean(user.emailVerified);
     return json({
       token: signToken(user._id.toString()),
@@ -31,6 +35,10 @@ export async function POST(request) {
         id: user._id.toString(),
         email: user.email,
         emailVerified: isVerified,
+        deletion_status: user.deletion_status || 'active',
+        scheduled_purge_at: user.scheduled_purge_at || null,
+        has_terms_consent: Boolean(user.has_terms_consent),
+        terms_consent_version: user.terms_consent_version || null,
       },
     });
   } catch (error) { return handleError(error); }

@@ -19,7 +19,7 @@ export async function POST(request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const filename = file.name || 'resume';
     const contentType = file.type || 'application/octet-stream';
-    const { rawText, structured, confidence } = await parseResume(buffer, contentType, filename);
+    const { rawText, structured, confidence } = await parseResume(buffer, contentType, filename, { userId: uid });
     const uploaded = await uploadResume({ userId: uid, filename, contentType, buffer });
     const { profiles } = await getCollections();
     await profiles.updateOne(

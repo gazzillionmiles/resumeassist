@@ -2,9 +2,14 @@
 
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/state/authStore';
+import { identifyUser, analytics } from '@/lib/client/analytics';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -23,54 +28,112 @@ function LoginForm() {
       const res = await api.login(email, password);
       if (res.token) {
         setAuth(res.token, res.user || { email, emailVerified: false });
+        if (res.user?.id) {
+          identifyUser(res.user.id);
+        }
+        analytics.login('email');
       }
       router.replace(params.get('next') || '/generate');
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center px-6 max-w-sm mx-auto w-full">
-      <h1 className="text-3xl mb-1">Welcome back</h1>
-      <p className="text-ink/60 mb-8">Log in to draft your next outreach.</p>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <input
-          className="input-field"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          className="input-field"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        {error && <p className="text-rust text-sm">{error}</p>}
-        <button className="btn-primary mt-2 cursor-pointer" disabled={loading}>
-          {loading ? 'Logging in…' : 'Log in'}
-        </button>
-      </form>
-      <p className="text-sm text-ink/60 mt-6">
-        No account?{' '}
-        <Link href="/signup" className="text-moss font-medium">
-          Sign up
-        </Link>
-      </p>
+    <div className="min-h-screen flex flex-col bg-[#121316] text-[#F4F4F5]">
+      <Header />
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md rounded-2xl bg-[#18191D] border border-white/10 p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <Image
+              src="/Outreach.png"
+              alt="Outreach Logo"
+              width={48}
+              height={48}
+              className="w-12 h-12 rounded-2xl object-contain mx-auto shadow-lg"
+              priority
+            />
+            <h1 className="text-2xl font-bold tracking-tight text-white">Welcome back</h1>
+            <p className="text-xs text-zinc-400">Log in to draft your next tailored outreach</p>
+          </div>
+
+          {error && (
+            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-300 block">Email address</label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  className="input-field pl-10"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-zinc-300 block">Password</label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  className="input-field pl-10"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 px-4 rounded-xl bg-[#2CB7A5] hover:bg-[#24998A] text-[#121316] font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? (
+                <span>Logging in…</span>
+              ) : (
+                <>
+                  <span>Log in</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="text-center text-xs text-zinc-400 pt-2 border-t border-white/5">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="text-[#2CB7A5] font-semibold hover:underline">
+              Sign up
+            </Link>
+          </div>
+        </div>
+      </div>
+      <Footer />
     </div>
   );
 }
 
 export default function Login() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Loading…</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#121316] text-zinc-500 text-sm">
+          Loading…
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );
